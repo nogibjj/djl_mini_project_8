@@ -5,7 +5,7 @@ use prettytable::{Table, Row, Cell};
 use reqwest;
 
 fn extract() -> Result<String, Box<dyn Error>> {
-    let url = "https://raw.githubusercontent.com/jjsantos01/aire_cdmx/master/datos/contaminantes_2019-05-16.csv";
+    let url = "https://raw.githubusercontent.com/jjsantos01/aire_cdmx/master/datos/contaminantes_2019-05-16.cvs";
     let file_path = "ET/data/my_air_cont2.csv";
 
     let response = reqwest::blocking::get(url)?.bytes()?;
