@@ -6,25 +6,27 @@ use reqwest;
 
 fn extract() -> Result<String, Box<dyn Error>> {
     let url = "https://raw.githubusercontent.com/jjsantos01/aire_cdmx/master/datos/contaminantes_2019-05-16.csv";
-    let file_path = "ET/data/my_air_cont.csv";
+    let file_path = "ET/data/my_air_cont2.csv";
 
     let response = reqwest::blocking::get(url)?.bytes()?;
+    println!("Response length: {}", response.len());
     std::fs::write(file_path, &response)?;
+    println!("File written to: {}", file_path);
 
     Ok(file_path.to_string())
 }
 
 fn load() -> Result<String, Box<dyn Error>> {
-    let dataset = "ET/data/my_air_cont.csv";
-    let conn = Connection::open("ET/data/my_airDB.db")?;
+    let dataset = "ET/data/my_air_cont2.csv";
+    let conn = Connection::open("ET/data/my_airDB2.db")?;
 
-    conn.execute("DROP TABLE IF EXISTS my_airDB", params![])?;
+    conn.execute("DROP TABLE IF EXISTS my_airDB2", params![])?;
     conn.execute(
-        "CREATE TABLE my_airDB (Fecha TEXT, Hora TEXT, ZP TEXT, imecas TEXT, zona TEXT, contaminante TEXT, color TEXT)",
+        "CREATE TABLE my_airDB2 (Fecha TEXT, Hora TEXT, ZP TEXT, imecas TEXT, zona TEXT, contaminante TEXT, color TEXT)",
         params![],
     )?;
 
-    let mut stmt = conn.prepare("INSERT INTO my_airDB (Fecha, Hora, ZP, imecas, zona, contaminante, color) VALUES (?, ?, ?, ?, ?, ?, ?)")?;
+    let mut stmt = conn.prepare("INSERT INTO my_airDB2 (Fecha, Hora, ZP, imecas, zona, contaminante, color) VALUES (?, ?, ?, ?, ?, ?, ?)")?;
 
     let file = std::fs::File::open(dataset)?;
     let mut rdr = Reader::from_reader(file);
@@ -42,7 +44,7 @@ fn load() -> Result<String, Box<dyn Error>> {
         ])?;
     }
 
-    Ok("my_airDB.db".to_string())
+    Ok("my_airDB.db2".to_string())
 }
 
 fn print_table(data: &Vec<Vec<String>>) {
@@ -55,11 +57,11 @@ fn print_table(data: &Vec<Vec<String>>) {
 }
 
 fn query_count_imecas() -> Result<String, Box<dyn Error>> {
-    let conn = Connection::open("ET/data/my_airDB.db")?;
+    let conn = Connection::open("ET/data/my_airDB2.db")?;
     let mut stmt = conn.prepare(
-        "SELECT zona, COUNT(*) AS total FROM my_airDB GROUP BY zona; \
-        SELECT imecas, COUNT(*) AS total FROM my_airDB GROUP BY imecas; \
-        SELECT zona, imecas, COUNT(*) AS type_of_IMECAS_by_zone FROM my_airDB GROUP BY zona, imecas ORDER BY zona DESC;",
+        "SELECT zona, COUNT(*) AS total FROM my_airDB2 GROUP BY zona; \
+        SELECT imecas, COUNT(*) AS total FROM my_airDB2 GROUP BY imecas; \
+        SELECT zona, imecas, COUNT(*) AS type_of_IMECAS_by_zone FROM my_airDB2 GROUP BY zona, imecas ORDER BY zona DESC;",
     )?;
 
     let mut data: Vec<Vec<String>> = Vec::new();
