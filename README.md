@@ -1,4 +1,4 @@
-## Mini project 8. Rewrite a Python script in R
+## Mini project 8. Rewrite a Python script in Rust
 
 Quary in python script
 - Runtime: 0.06 seconds
