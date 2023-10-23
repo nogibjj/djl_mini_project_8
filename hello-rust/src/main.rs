@@ -1,6 +1,6 @@
 use std::error::Error;
 use csv::Reader;
-use rusqlite::{Connection, params, NO_PARAMS};
+use rusqlite::{params, Connection};
 use prettytable::{Table, Row, Cell};
 use reqwest;
 
@@ -45,7 +45,7 @@ fn load() -> Result<String, Box<dyn Error>> {
     Ok("my_airDB.db".to_string())
 }
 
-fn print_table(data: Vec<Vec<String>>) {
+fn print_table(data: &Vec<Vec<String>>) {
     let mut table = Table::new();
     for row in data.iter() {
         let cells: Vec<Cell> = row.iter().map(|value| Cell::new(value)).collect();
@@ -64,23 +64,25 @@ fn query_count_imecas() -> Result<String, Box<dyn Error>> {
 
     let mut data: Vec<Vec<String>> = Vec::new();
 
-    while let Some(row) = stmt.query(NO_PARAMS)?.next()? {
-        let row_data: Vec<String> = (0..row.column_count())
-            .map(|i| match row.get_checked::<usize, String>(i) {
-                Ok(value) => value,
-                Err(_) => "N/A".to_string(),
-            })
-            .collect();
-
+    while let Some(row) = stmt.query(params![])?.next()? {
+        let mut row_data = Vec::new();
+        for i in 0..row.column_count() {
+            let value = match row.get(i)? {
+                rusqlite::types::Value::Text(text) => text.to_string(),
+                rusqlite::types::Value::Integer(int) => int.to_string(),
+                rusqlite::types::Value::Real(float) => float.to_string(),
+                _ => "N/A".to_string(),
+            };
+            row_data.push(value);
+        }
         data.push(row_data);
     }
 
-    print_table(data);
+    print_table(&data);
 
     Ok("Success".to_string())
 }
-
-
+   
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Extract data
@@ -91,11 +93,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Transforming data...");
     load()?;
 
-     // Query
-     println!("Query...");
-     query_count_imecas()?;
-   
+    // Query
+    println!("Querying data...");
+    query_count_imecas()?;
 
     Ok(())
 }
-
